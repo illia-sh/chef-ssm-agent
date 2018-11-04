@@ -1,0 +1,52 @@
+---
+driver:
+  name: docker
+  privileged: true
+  use_sudo: false
+
+provisioner:
+  name: chef_zero
+  # You may wish to disable always updating cookbooks in CI or other testing environments.
+  # For example:
+  #   always_update_cookbooks: <%= !ENV['CI'] %>
+  always_update_cookbooks: true
+  product_version: 12.22.5
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: ubuntu-16.04
+    driver:
+      name: vagrant
+
+  - name: centos-6.9
+    driver:
+      name: vagrant
+  - name: centos-7
+    driver_config:
+      run_command: /usr/sbin/init
+
+  - name: rhel-7
+    driver:
+      name: ec2
+      aws_ssh_key_id: <%= ENV['AWS_SSH_KEY_ID'] %>
+      region: <%= ENV['AWS_DEFAULT_REGION'] || "eu-west-1" %>
+      availability_zone: eu-west-1a
+      security_group_ids: <%= ENV['AWS_SG_ID'] || "sg-xxxxxx" %>
+      subnet_id: <%= ENV['AWS_SUBNET_ID'] || "subnet-xxxxxxx" %>  
+      interface: private
+      instance_type: t2.micro
+      shared_credentials_profile: <%= ENV['AWS_PROFILE'] || "default" %>
+      tags:
+        Name: created by test-kitchen
+    transport:
+      username: ec2-user
+suites:
+  - name: default
+    run_list:
+      - recipe[ssm-agent::default]
+    verifier:
+      inspec_tests:
+        - test/integration/default
+    attributes:
