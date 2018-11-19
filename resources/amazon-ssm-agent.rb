@@ -38,7 +38,8 @@ action :install do
   )
   # https://www.rubydoc.info/github/opscode/chef/Chef/Provider/Service#
     action value_for_platform(
-      ['centos','redhat','amazon'] => { '< 7.0' => [:start] },
+      ['centos','redhat'] => { '< 7.0' => [:start] },
+       'amazon' => {'>= 2018.03' => [:start]},
       'default' => [:enable, :start]
 )
   end
